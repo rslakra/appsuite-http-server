@@ -28,7 +28,7 @@
  * Devamatre reserves the right to modify the technical specifications and or 
  * features without any prior notice.
  *****************************************************************************/
-package com.rslakra.testcases.httpsserver;
+package com.devamatre.testcases.httpsserver;
 
 /**
  * @author Rohtash Lakra (rohtash.lakra@devamatre.com)
