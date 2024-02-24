@@ -38,8 +38,7 @@ import javax.net.ssl.SSLSession;
  * for the demo purposes. If you wish to use this code in production, make sure
  * you verifiy the host as per your certificate.
  *
- * @author Rohtash Lakra (rohtash.lakra@devamatre.com)
-* @author Rohtash Lakra (rohtash.singh@gmail.com)
+ * @author Rohtash Lakra
  * @version 1.0.0
  * @created 2015-05-28 11:23:48 AM
  * @since 1.0.0
