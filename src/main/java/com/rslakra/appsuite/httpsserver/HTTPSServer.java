@@ -28,12 +28,13 @@
  * Devamatre reserves the right to modify the technical specifications and or 
  * features without any prior notice.
  *****************************************************************************/
-package com.devamatre.appsuite.httpsserver;
+package com.rslakra.appsuite.httpsserver;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,56 +44,50 @@ import java.io.PrintWriter;
 
 /**
 * @author Rohtash Lakra
- * <p>
- * https://127.0.0.1:7516/
  */
-public class HTTPSClient {
+public class HTTPSServer {
 
-    private String host;
     private int port;
+    private boolean isServerDone = false;
 
-    /**
-     * @param args
-     */
     public static void main(String[] args) {
-        HTTPSClient client = new HTTPSClient(Constants.getHost(), Constants.getPort());
-        client.run();
+        HTTPSServer server = new HTTPSServer(Constants.getPort());
+        server.run();
     }
 
-    /**
-     * @param host
-     * @param port
-     */
-    HTTPSClient(String host, int port) {
-        // Create the and initialize the SSLContext
-        this.host = host;
+    HTTPSServer(int port) {
         this.port = port;
     }
 
     // Start to run the server
     public void run() {
-        SSLContext sslContext = Constants.createSSLContext(HTTPSClient.class);
+        SSLContext sslContext = Constants.createSSLContext(HTTPSServer.class);
 
         try {
-            // Create socket factory
-            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            // Create server socket factory
+            SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
 
-            // Create socket
-            SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(this.host, this.port);
+            // Create server socket
+            SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(this.port);
 
-            System.out.println("SSL client started");
-            new ClientThread(sslSocket).start();
+            System.out.println("SSL server started");
+            while (!isServerDone) {
+                SSLSocket sslSocket = (SSLSocket) sslServerSocket.accept();
+
+                // Start the server thread
+                new ServerThread(sslSocket).start();
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
-    // Thread handling the socket to server
-    static class ClientThread extends Thread {
+    // Thread handling the socket from client.
+    static class ServerThread extends Thread {
 
         private SSLSocket sslSocket = null;
 
-        ClientThread(SSLSocket sslSocket) {
+        ServerThread(SSLSocket sslSocket) {
             this.sslSocket = sslSocket;
         }
 
@@ -117,19 +112,18 @@ public class HTTPSClient {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                 PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(outputStream));
 
-                // Write data
-                printWriter.println("Hello Server");
-                printWriter.println();
-                printWriter.flush();
-
                 String line = null;
                 while ((line = bufferedReader.readLine()) != null) {
                     System.out.println("Inut : " + line);
 
-                    if (line.trim().equals("HTTP/1.1 200\r\n")) {
+                    if (line.trim().isEmpty()) {
                         break;
                     }
                 }
+
+                // Write data
+                printWriter.print("HTTP/1.1 200\r\n");
+                printWriter.flush();
 
                 sslSocket.close();
             } catch (Exception ex) {
